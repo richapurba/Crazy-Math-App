@@ -1,1 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Euler & Natural Log Sandbox</title>
+    <style>
+        :root {
+            --bg-space: #0b0f19;
+            --panel-bg: #161f33;
+            --accent-glow: #4facfe;
+            --text-main: #f0f4f8;
+            --text-muted: #94a3b8;
+            --correct-green: #10b981;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-space);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .sandbox-container {
+            background: var(--panel-bg);
+            border-radius: 16px;
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 40px rgba(79, 172, 254, 0.1);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-top: -10px;
+            margin-bottom: 25px;
+        }
+
+        .level-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .level-btn {
+            flex: 1;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-main);
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .level-btn.active, .level-btn:hover {
+            background: var(--accent-glow);
+            color: #000;
+            border-color: var(--accent-glow);
+            box-shadow: 0 0 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .problem-display {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 25px;
+            border-left: 4px solid var(--accent-glow);
+        }
+
+        .problem-display span {
+            color: var(--accent-glow);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="number"] {
+            flex: 1;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 12px;
+            color: #fff;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent-glow);
+        }
+
+        .submit-btn {
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 0 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .result-panel {
+            background: rgba(255,255,255,0.02);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+
+        .result-value {
+            font-weight: 600;
+        }
+
+        .hint-box {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed rgba(255,255,255,0.1);
+            color: var(--text-muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .score-tracker {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="sandbox-container">
+    <h2>Mental Log Sandbox</h2>
+    <div class="subtitle">Calibrating your 3-second delay</div>
+
+    <div class="level-selector">
+        <button class="level-btn active" onclick="setLevel('close')">Close to 1</button>
+        <button class="level-btn" onclick="setLevel('small')">Small Numbers</button>
+        <button class="level-btn" onclick="setLevel('large')">Powers of 2</button>
+    </div>
+
+    <div class="problem-display" id="problem">
+        ln(<span>1.25</span>) = ?
+    </div>
+
+    <div class="input-group">
+        <input type="number" id="user-input" step="0.001" placeholder="Your mental guess" onkeydown="if(event.key==='Enter') checkAnswer()">
+        <button class="submit-btn" onclick="checkAnswer()">Submit</button>
+    </div>
+
+    <div class="result-panel" id="result-panel">
+        <div class="result-row">
+            <span>Your Guess:</span>
+            <span class="result-value" id="res-guess" style="color: var(--accent-glow);">0</span>
+        </div>
+        <div class="result-row">
+            <span>True Value:</span>
+            <span class="result-value" id="res-true" style="color: var(--correct-green);">0</span>
+        </div>
+        <div class="result-row">
+            <span>Accuracy:</span>
+            <span class="result-value" id="res-accuracy">0%</span>
+        </div>
+        <div class="hint-box" id="hint-text">
+            Hint details will appear here...
+        </div>
+    </div>
+
+    <div class="score-tracker">
+        <span id="trials">Problems Solved: 0</span>
+        <span id="avg-accuracy">Avg Accuracy: --</span>
+    </div>
+</div>
+
+<script>
+    let currentLevel = 'close';
+    let currentTarget = 1.25;
+    let totalScore = 0;
+    let trialsCount = 0;
+
+    function setLevel(lvl) {
+        currentLevel = lvl;
+        document.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        generateProblem();
+    }
+
+    function generateProblem() {
+        document.getElementById('result-panel').style.display = 'none';
+        document.getElementById('user-input').value = '';
+        document.getElementById('user-input').focus();
+
+        if (currentLevel === 'close') {
+            // Numbers between 0.75 and 1.35
+            currentTarget = parseFloat((0.75 + Math.random() * 0.6).toFixed(2));
+        } else if (currentLevel === 'small') {
+            // Numbers between 1.5 and 5.0
+            currentTarget = parseFloat((1.5 + Math.random() * 3.5).toFixed(1));
+        } else {
+            // Multiples or near multiples of 2, 4, 8
+            const options = [2, 4, 8, 1.6, 3.2, 6.4];
+            currentTarget = options[Math.floor(Math.random() * options.length)];
+        }
+
+        document.getElementById('problem').innerHTML = `ln(<span>${currentTarget}</span>) = ?`;
+    }
+
+    function checkAnswer() {
+        const inputVal = parseFloat(document.getElementById('user-input').value);
+        if (isNaN(inputVal)) return;
+
+        const trueVal = Math.log(currentTarget);
+        const error = Math.abs(inputVal - trueVal);
+        
+        // Calculate an accuracy percentage
+        let accuracy = 100 - (error * 100);
+        if (accuracy < 0) accuracy = 0;
+        accuracy = parseFloat(accuracy.toFixed(1));
+
+        // Update score tracking
+        trialsCount++;
+        totalScore += accuracy;
+        
+        document.getElementById('res-guess').innerText = inputVal;
+        document.getElementById('res-true').innerText = trueVal.toFixed(4);
+        document.getElementById('res-accuracy').innerText = accuracy + '%';
+        
+        // Generate tactical hint breakdown based on the number
+        let hint = "";
+        if (currentLevel === 'close') {
+            let x = (currentTarget - 1).toFixed(2);
+            hint = `<strong>The Strategy:</strong> Because ${currentTarget} is close to 1, use <code>ln(1 + x) ≈ x</code>. Here, x is ${x}, so your structural baseline guess should be near <strong>${x}</strong>.`;
+        } else {
+            hint = `<strong>The Strategy:</strong> Use the formula <code>2 * (N - 1) / (N + 1)</code>. <br>For ${currentTarget}: 2 * (${(currentTarget-1).toFixed(2)} / ${(currentTarget+1).toFixed(2)}) = 2 * ${( (currentTarget-1)/(currentTarget+1) ).toFixed(3)} ≈ <strong>${(2 * (currentTarget-1)/(currentTarget+1)).toFixed(2)}</strong>.`;
+            if(currentTarget >= 2) {
+                hint += `<br><em>Alternative:</em> Remember <code>ln(2) ≈ 0.693</code>. Since 4 is 2², <code>ln(4) = 2 * 0.693 ≈ 1.38</code>.`;
+            }
+        }
+
+        document.getElementById('hint-text').innerHTML = hint;
+        document.getElementById('result-panel').style.display = 'block';
+        
+        document.getElementById('trials').innerText = `Problems Solved: ${trialsCount}`;
+        document.getElementById('avg-accuracy').innerText = `Avg Accuracy: ${(totalScore / trialsCount).toFixed(1)}%`;
+
+        // Wait 4 seconds then fetch next problem automatically to keep momentum
+        setTimeout(generateProblem, 6000);
+    }
+
+    // Initial run
+    generateProblem();
+</script>
+
+</body>
+</html>
 
